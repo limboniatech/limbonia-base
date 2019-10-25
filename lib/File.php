@@ -21,7 +21,7 @@ class File
    *
    * @param string $sPath - the path of the directory to make
    * @param number $nMode
-   * @throws Exception on failure
+   * @throws \Limbonia\Exception on failure
    */
   static public function makeDir($sPath, $nMode = 0777)
   {
@@ -30,7 +30,7 @@ class File
       return true;
     }
 
-    $OldMask = umask(0000);
+    $nOldMask = umask(0000);
 
     try
     {
@@ -38,7 +38,7 @@ class File
     }
     catch (\Exception $e)
     {
-      umask($OldMask);
+      umask($nOldMask);
       throw $e;
     }
 
@@ -52,11 +52,11 @@ class File
     $sError = ob_get_clean();
 
     chdir($sCurrentDir);
-    umask($OldMask);
+    umask($nOldMask);
 
     if (!$bSuccess)
     {
-      throw new \Exception("Error creating $sNewDir: $sError");
+      throw new \Limbonia\Exception("Error creating $sNewDir: $sError");
     }
 
     return true;
@@ -104,12 +104,12 @@ class File
    *
    * @param string $sFilePath - the path to the file to open
    * @param string $sMode (optional) - the mode to open the file in
-   * @throws Exception
+   * @throws \Limbonia\Exception
    * @return resource
    */
   static public function openFile($sFilePath, $sMode = 'a')
   {
-    if (Controller::isCli() && preg_match("#php://(std(in|out|err))#", $sFilePath, $aMatch))
+    if (Util::isCli() && preg_match("#php://(std(in|out|err))#", $sFilePath, $aMatch))
     {
       return constant(strtoupper($aMatch[1]));
     }
@@ -120,7 +120,7 @@ class File
 
     if ($rFilePath == false)
     {
-      throw new Exception($sError);
+      throw new \Limbonia\Exception($sError);
     }
 
     return $rFilePath;
@@ -142,7 +142,7 @@ class File
     // if this is the CLI and the file resource is one of the standard ones
     // don't even *try* to close it, just return true and let PHP handle it
     // when the script ends...
-    if (Controller::isCli() && ($rFilePath == STDIN || $rFilePath == STDOUT || $rFilePath == STDERR))
+    if (Util::isCli() && ($rFilePath == STDIN || $rFilePath == STDOUT || $rFilePath == STDERR))
     {
       return true;
     }
@@ -153,8 +153,8 @@ class File
   /**
    * Open and lock the specified file then return a handle to the openend file
    *
-   * @param type $sFilePath
-   * @param type $sMode
+   * @param string $sFilePath
+   * @param string $sMode
    * @return resource - A file resource on success and false on failure
    */
   static public function lock($sFilePath, $sMode = 'a')
@@ -215,6 +215,6 @@ class File
    */
   static public function writeLn($sData, $sFilePath = null)
   {
-    return self::write($sData . Controller::eol(), $sFilePath);
+    return self::write($sData . Util::eol(), $sFilePath);
   }
 }

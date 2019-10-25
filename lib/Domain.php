@@ -22,7 +22,7 @@ class Domain
    *
    * @var string
    */
-  protected static $sDomainDirTemplate = '/home/lonnie/__DOMAIN__/__SUB__/html';
+  protected static $sDomainDirTemplate = '/home/user/__DOMAIN__/__SUB__/html';
 
   /**
    * The current HTTP protocol being used at this time
@@ -56,8 +56,8 @@ class Domain
    * Generate and return the document root of the specified domain
    *
    * @param string $sDomain
-   * @return type
-   * @throws \Exception
+   * @return string
+   * @throws \Limbonia\Exception
    * @return string The generated document root
    */
   public static function generatePath($sDomain)
@@ -85,7 +85,7 @@ class Domain
       }
     }
 
-    throw new \Exception("The domain specified ($sDomain) is not valid!");
+    throw new \Limbonia\Exception("The domain specified ($sDomain) is not valid!");
   }
 
   /**
@@ -93,7 +93,7 @@ class Domain
    *
    * @param string $sDomainPath
    * @return string
-   * @throws \Exception
+   * @throws \Limbonia\Exception
    * @return string The generated domain name
    */
   public static function generateName($sDomainPath)
@@ -109,14 +109,14 @@ class Domain
         return $aMatch[1];
       }
 
-      throw new \Exception("The domain path specified ($sDomainPath) is not valid!");
+      throw new \Limbonia\Exception("The domain path specified ($sDomainPath) is not valid!");
     }
 
     $sExpression = '#^' . preg_replace("#__DOMAIN__#", '(.*?)', preg_replace("#__SUB__#", '(.*?)', self::$sDomainDirTemplate)) . '#';
 
     if (!preg_match($sExpression, $sDomainPath, $aMatch) || count($aMatch) == 1)
     {
-      throw new \Exception("The domain path specified ($sDomainPath) is not valid!");
+      throw new \Limbonia\Exception("The domain path specified ($sDomainPath) is not valid!");
     }
 
     return empty($aMatch[2]) || $aMatch[2] == 'www' ? $aMatch[1] : $aMatch[2] . '.' . $aMatch[1];
@@ -143,14 +143,14 @@ class Domain
    *
    * @param string $sDomainRoot
    * @param boolean $bValidatePath
-   * @throws \Exception
+   * @throws \Limbonia\Exception
    * @return Domain
    */
   public static function getByDirectory($sDomainRoot, $bValidatePath = false)
   {
     if ($bValidatePath && !is_dir($sDomainRoot))
     {
-      throw new \Exception("The directory ($sDomainRoot) does not exist!");
+      throw new \Limbonia\Exception("The directory ($sDomainRoot) does not exist!");
     }
 
     $sDomain = self::generateName($sDomainRoot);
@@ -159,7 +159,7 @@ class Domain
     {
       if ($bValidatePath && $sDomain == 'localhost')
       {
-        throw new \Exception("The directory ($sDomainRoot) is not valid!");
+        throw new \Limbonia\Exception("The directory ($sDomainRoot) is not valid!");
       }
 
       self::$hDomainList[$sDomain] = new self($sDomain, $sDomainRoot);
@@ -178,6 +178,11 @@ class Domain
     self::$sDomainDirTemplate = $sDirTemplate;
   }
 
+  /**
+   * Return the protocol to use with the currently display page
+   *
+   * @return string
+   */
   public static function protocol()
   {
     if (empty(self::$sProtocol))

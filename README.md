@@ -1,5 +1,5 @@
-# limbonia
-This repository contains all Limbonia code that hasn't been / can't be broken out into sub-projects
+# limbonia-base
+This repository contains various base Limbonia classes and traits that don't belong anywhere else
 
 ## TODO
 Write out the rest of the documentation...

@@ -8,7 +8,7 @@ namespace Limbonia\Traits;
  * implementation of a factory method in the receiving class.
  *
  * @author Lonnie Blansett <lonnie@limbonia.tech>
- * @package Limbonia
+ * @package Limbonia-Base
  */
 trait DriverList
 {
@@ -72,7 +72,7 @@ trait DriverList
   {
     if (empty(static::$hDriverList))
     {
-      if (\Limbonia\SessionManager::isStarted() && isset($_SESSION['DriverList'][__CLASS__]))
+      if (class_exists('\Limbonia\SessionManager') && SessionManager::isStarted() && isset($_SESSION['DriverList'][__CLASS__]))
       {
         static::$hDriverList = $_SESSION['DriverList'][__CLASS__];
       }
@@ -81,7 +81,7 @@ trait DriverList
         static::$hDriverList = [];
         $sClassDir = preg_replace("#\\\#", '/', self::classType());
 
-        foreach (\Limbonia\Controller::getLibs() as $sLib)
+        foreach (Util::getLibs() as $sLib)
         {
           foreach (glob("$sLib/$sClassDir/*.php") as $sClassFile)
           {
@@ -113,7 +113,7 @@ trait DriverList
         ksort(static::$hDriverList);
         reset(static::$hDriverList);
 
-        if (\Limbonia\SessionManager::isStarted())
+        if (class_exists('\Limbonia\SessionManager') && SessionManager::isStarted())
         {
           $_SESSION['DriverList'][__CLASS__] = static::$hDriverList;
         }
