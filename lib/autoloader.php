@@ -1,7 +1,5 @@
 <?php
 /**
- * Limbonia autoloader
+ * Limbonia-Base autoloader
  */
-
-require 'Util.php';
-\Limbonia\Util::registerAutoloader();
+\Limbonia\Loader::addLib(__DIR__);
