@@ -114,7 +114,7 @@ class Util
    */
   public static function flatten($xData)
   {
-    return var_dump($xData, true);
+    return print_r($xData, true);
   }
 
   /**

@@ -206,14 +206,15 @@ trait Hash
    */
   public function seek($xKey)
   {
+    $xLowerKey = \strtolower($xKey);
     $this->rewind();
 
-    while ($this->key() != $xKey)
+    while ($this->key() != $xLowerKey && $this->valid())
     {
       $this->next();
     }
 
-    if ($this->key() != $xKey)
+    if ($this->key() != $xLowerKey)
     {
       throw new \OutOfBoundsException("Invalid seek position ($xKey)");
     }

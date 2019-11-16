@@ -109,21 +109,37 @@ class File
    */
   static public function openFile($sFilePath, $sMode = 'a')
   {
-    if (Util::isCli() && preg_match("#php://(std(in|out|err))#", $sFilePath, $aMatch))
+    if (preg_match("#php://(std(in|out|err))#", $sFilePath, $aMatch) && \defined(strtoupper($aMatch[1])))
     {
       return constant(strtoupper($aMatch[1]));
     }
 
-    ob_start();
-    $rFilePath = fopen($sFilePath, $sMode);
-    $sError = trim(ob_get_clean());
-
-    if ($rFilePath == false)
+    set_error_handler(function($iSeverity, $sMessage, $sFile, $iLine)
     {
-      throw new \Limbonia\Exception($sError);
+      if (!(error_reporting() & $iSeverity))
+      {
+        // This error code is not included in error_reporting
+        return;
+      }
+
+      throw new \Limbonia\Exception($sMessage);
+    });
+
+    try
+    {
+      $rFile = fopen($sFilePath, $sMode);
+    }
+    finally
+    {
+      restore_error_handler();
     }
 
-    return $rFilePath;
+    if (!is_resource($rFile))
+    {
+      throw new \Limbonia\Exception('Failed to open file: Unknown Error');
+    }
+
+    return $rFile;
   }
 
   /**
@@ -139,10 +155,9 @@ class File
       return true;
     }
 
-    // if this is the CLI and the file resource is one of the standard ones
-    // don't even *try* to close it, just return true and let PHP handle it
-    // when the script ends...
-    if (Util::isCli() && ($rFilePath == STDIN || $rFilePath == STDOUT || $rFilePath == STDERR))
+    // if this is one of the standard ones file handles don't even *try* to
+    // close it, just return true and let PHP handle it when the script ends...
+    if (($rFilePath === STDIN || $rFilePath === STDOUT || $rFilePath === STDERR))
     {
       return true;
     }
@@ -155,21 +170,20 @@ class File
    *
    * @param string $sFilePath
    * @param string $sMode
-   * @return resource - A file resource on success and false on failure
+   * @throws \Limbonia\Exception
+   * @return resource - A file resource on success
    */
   static public function lock($sFilePath, $sMode = 'a')
   {
-    if ($rFile = self::openFile($sFilePath, $sMode . 'b'))
-    {
-      if (flock($rFile, $sMode == 'r' ? LOCK_SH : LOCK_EX))
-      {
-        return $rFile;
-      }
+    $rFile = self::openFile($sFilePath, $sMode . 'b');
 
-      self::closeFile($rFile);
+    if (flock($rFile, preg_match("/r/", $sMode) ? LOCK_SH | LOCK_NB : LOCK_EX | LOCK_NB))
+    {
+      return $rFile;
     }
 
-    return false;
+    self::closeFile($rFile);
+    throw new \Limbonia\Exception('Failed to lock file: $sFilePath');
   }
 
   /**
@@ -188,33 +202,5 @@ class File
     // even if closing the file fails, we'll return true
     self::closeFile($rFile);
     return true;
-  }
-
-  /**
-   * Prints the the passed data
-   *
-   * @param string $sData - The string to be printed
-   */
-  static public function write($sData, $sFilePath = null)
-  {
-    if (empty($sFilePath))
-    {
-      echo $sData;
-      return strlen($sData);
-    }
-
-    return file_put_contents($sFilePath, $sData);
-  }
-
-  /**
-   * Prints the the passed data with the Limbonia EOL string appended to it
-   *
-   * @param string $sData - The string will be printed
-   * @param string $sFilePath - the file to be printed to (optional)
-   * @return boolean
-   */
-  static public function writeLn($sData, $sFilePath = null)
-  {
-    return self::write($sData . Util::eol(), $sFilePath);
   }
 }
