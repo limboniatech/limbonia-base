@@ -9,4 +9,10 @@ namespace Limbonia;
  * @author Lonnie Blansett <lonnie@limbonia.tech>
  * @package Limbonia
  */
-class Exception extends \Exception { }
+class Exception extends \Exception
+{
+  public static function throw($sMessage)
+  {
+    throw new self($sMessage);
+  }
+}
