@@ -2,3 +2,4 @@
 .directory
 .phpunit.result.cache
 composer.lock
+nbproject/
